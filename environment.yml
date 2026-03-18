@@ -1,0 +1,14 @@
+name: st-selenium
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - chromium
+  - chromedriver
+  - pip
+  - pip:
+      - streamlit
+      - pandas
+      - selenium
+      - webdriver-manager
+      - openpyxl
