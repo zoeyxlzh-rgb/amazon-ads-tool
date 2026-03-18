@@ -19,46 +19,42 @@ st.markdown("""
 """)
 
 def get_amazon_ads(asin):
-    """访问亚马逊详情页并抓取前20个广告位ASIN"""
     options = Options()
     options.add_argument("--headless")
-    options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-gpu")
     # 模拟真实浏览器
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
     
-    # --- 针对 Conda 环境的路径对齐 ---
+    driver = None
     try:
-        # 在 Conda 环境中，chromium 和 chromedriver 会被安装在标准路径
+        # 在 Conda 环境下，chromium 和 chromedriver 会自动进入 PATH
+        # 我们不需要指定路径，直接启动即可
         driver = webdriver.Chrome(options=options)
         
         url = f"https://www.amazon.com/dp/{asin}?language=en_US&th=1&psc=1"
         driver.get(url)
         
-        # 你的逻辑：等待加载
+        # 你的核心逻辑：等待加载
         time.sleep(random.uniform(6, 10))
-        
-        # 模拟一点滚动，确保懒加载的广告位能出来
         driver.execute_script("window.scrollTo(0, 1000);")
         time.sleep(2)
 
         elements = driver.find_elements(By.XPATH, "//*[@data-asin]")
         ad_asins = []
-        
         for el in elements:
-            found_asin = el.get_attribute("data-asin").strip()
-            if found_asin and found_asin != asin and len(found_asin) == 10:
-                if found_asin not in ad_asins:
-                    ad_asins.append(found_asin)
-            if len(ad_asins) >= 20:
-                break
+            val = el.get_attribute("data-asin").strip()
+            if val and val != asin and len(val) == 10:
+                if val not in ad_asins:
+                    ad_asins.append(val)
+            if len(ad_asins) >= 20: break
         return ad_asins
     except Exception as e:
-        st.error(f"驱动启动失败: {str(e)}")
+        st.error(f"捕获到异常: {e}")
         return []
     finally:
-        if 'driver' in locals():
+        if driver:
             driver.quit()
 
 # --- 1. 上传文件 ---
