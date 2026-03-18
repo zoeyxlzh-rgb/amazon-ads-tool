@@ -5,10 +5,8 @@ dependencies:
   - python=3.11
   - chromium
   - chromedriver
+  - selenium
+  - pandas
+  - streamlit
+  - openpyxl
   - pip
-  - pip:
-      - streamlit
-      - pandas
-      - selenium
-      - webdriver-manager
-      - openpyxl
