@@ -1,5 +1,6 @@
 streamlit
 pandas
-requests
-beautifulsoup4
+selenium
 openpyxl
+# 用于在 Linux 环境下自动管理 Chrome 驱动
+webdriver-manager
