@@ -21,29 +21,33 @@ st.markdown("""
 def get_amazon_ads(asin):
     """访问亚马逊详情页并抓取前20个广告位ASIN"""
     options = Options()
-    options.add_argument("--headless")  # 不显示窗口
+    options.add_argument("--headless")
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
-    # 模拟真实浏览器防止封禁
+    # 模拟真实浏览器
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
     
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-    ad_asins = []
-    
+    # --- 针对 Conda 环境的路径对齐 ---
     try:
-        url = f"https://www.amazon.com/dp/{asin}?language=en_US"
-        driver.get(url)
-        # 随机等待，模拟真人操作
-        time.sleep(random.uniform(4, 7))
+        # 在 Conda 环境中，chromium 和 chromedriver 会被安装在标准路径
+        driver = webdriver.Chrome(options=options)
         
-        # 亚马逊广告位通常在 data-asin 属性中，且在特定的 carousel 容器里
-        # 我们抓取页面上带有 data-asin 属性的所有元素
+        url = f"https://www.amazon.com/dp/{asin}?language=en_US&th=1&psc=1"
+        driver.get(url)
+        
+        # 你的逻辑：等待加载
+        time.sleep(random.uniform(6, 10))
+        
+        # 模拟一点滚动，确保懒加载的广告位能出来
+        driver.execute_script("window.scrollTo(0, 1000);")
+        time.sleep(2)
+
         elements = driver.find_elements(By.XPATH, "//*[@data-asin]")
+        ad_asins = []
         
         for el in elements:
             found_asin = el.get_attribute("data-asin").strip()
-            # 排除掉当前主产品的 ASIN 和 空值
             if found_asin and found_asin != asin and len(found_asin) == 10:
                 if found_asin not in ad_asins:
                     ad_asins.append(found_asin)
@@ -51,9 +55,11 @@ def get_amazon_ads(asin):
                 break
         return ad_asins
     except Exception as e:
+        st.error(f"驱动启动失败: {str(e)}")
         return []
     finally:
-        driver.quit()
+        if 'driver' in locals():
+            driver.quit()
 
 # --- 1. 上传文件 ---
 file = st.file_uploader("上传 Excel 表格", type=["xlsx"])
